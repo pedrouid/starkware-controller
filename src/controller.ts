@@ -4,6 +4,7 @@ import * as starkwareCrypto from 'starkware-crypto';
 
 import * as abi from './StarkExchangeABI.json';
 import { Store, StarkwareAccountMapping, MethodResults } from './interfaces';
+import { JsonRpcProvider } from 'ethers/providers';
 
 const DEFAULT_ACCOUNT_MAPPING_KEY = 'STARKWARE_ACCOUNT_MAPPING';
 
@@ -27,6 +28,12 @@ export class StarkwareController {
     if (paths.length && !this.activeKeyPair) {
       this.activeKeyPair = this.accountMapping[paths[0]];
     }
+  }
+
+  public async setProvider(provider: string | JsonRpcProvider) {
+    this.wallet.connect(
+      typeof provider === 'string' ? new JsonRpcProvider(provider) : provider
+    );
   }
 
   public async account(
@@ -327,7 +334,7 @@ export class StarkwareController {
   }
 
   public async resolve(payload: any) {
-    let response: { id: string; result: any };
+    let response: { id: number; result: any };
     const { id, method, params } = payload;
     switch (method) {
       case 'stark_register':
