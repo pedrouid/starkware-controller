@@ -11,10 +11,8 @@ describe('starkware-controller', () => {
       remove: async (key: string) => {},
     };
 
-    //  Create StarkwareController
     const controller = new StarkwareController(wallet, store);
 
-    // Initiate
-    await controller.init();
+    expect(controller).toBeTruthy();
   });
 });

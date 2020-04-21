@@ -1,10 +1,9 @@
 import BN from 'bn.js';
-import { Wallet, Contract } from 'ethers';
+import * as ethers from 'ethers';
 import * as starkwareCrypto from 'starkware-crypto';
 
 import * as abi from './StarkExchangeABI.json';
 import { Store, StarkwareAccountMapping, MethodResults } from './interfaces';
-import { JsonRpcProvider } from 'ethers/providers';
 
 const DEFAULT_ACCOUNT_MAPPING_KEY = 'STARKWARE_ACCOUNT_MAPPING';
 
@@ -14,32 +13,56 @@ interface Signature {
   recoveryParam: number | null;
 }
 
+function serializeSignature(signature: Signature): string {
+  return '0x' + signature.r.toString(16) + signature.s.toString(16);
+}
+
+// -- StarkwareController --------------------------------------------- //
+
 export class StarkwareController {
-  public accountMappingKey: string = DEFAULT_ACCOUNT_MAPPING_KEY;
-  public accountMapping: StarkwareAccountMapping = {};
-  public activeKeyPair: starkwareCrypto.KeyPair | undefined;
+  private accountMapping: StarkwareAccountMapping | undefined;
+  private activeKeyPair: starkwareCrypto.KeyPair | undefined;
 
-  constructor(private readonly wallet: Wallet, private store: Store) {}
+  constructor(
+    private readonly wallet: ethers.Wallet,
+    private store: Store,
+    public accountMappingKey: string = DEFAULT_ACCOUNT_MAPPING_KEY
+  ) {}
 
-  public async init(key?: string) {
-    this.accountMappingKey = key || DEFAULT_ACCOUNT_MAPPING_KEY;
-    this.accountMapping = (await this.store.get(this.accountMappingKey)) || {};
-    const paths = Object.keys(this.accountMapping);
-    if (paths.length && !this.activeKeyPair) {
-      this.activeKeyPair = this.accountMapping[paths[0]];
+  // -- Get / Set ----------------------------------------------------- //
+
+  public setProvider(
+    provider: string | ethers.ethers.providers.JsonRpcProvider
+  ): void {
+    this.wallet.connect(
+      typeof provider === 'string'
+        ? new ethers.ethers.providers.JsonRpcProvider(provider)
+        : provider
+    );
+  }
+
+  public async getStarkPublicKey(path?: string): Promise<string> {
+    const keyPair = await this.getKeyPairFromPath(path);
+    const publicKey = starkwareCrypto.getPublic(keyPair);
+    const starkPublicKey = starkwareCrypto.getStarkKey(publicKey);
+    return starkPublicKey;
+  }
+
+  public async getActiveKeyPair() {
+    await this.getAccountMapping();
+    if (this.activeKeyPair) {
+      return this.activeKeyPair;
+    } else {
+      throw new Error('No Active Starkware KeyPair - please provide a path');
     }
   }
 
-  public async setProvider(provider: string | JsonRpcProvider) {
-    this.wallet.connect(
-      typeof provider === 'string' ? new JsonRpcProvider(provider) : provider
-    );
-  }
+  // -- JSON-RPC ----------------------------------------------------- //
 
   public async account(
     path: string
   ): Promise<MethodResults.StarkAccountResult> {
-    const starkPublicKey = this.getStarkPublicKey(path);
+    const starkPublicKey = await this.getStarkPublicKey(path);
     return { starkPublicKey };
   }
 
@@ -63,7 +86,7 @@ export class StarkwareController {
     token: starkwareCrypto.Token,
     vaultId: string
   ): Promise<MethodResults.StarkDepositResult> {
-    this.assertStarkPublicKey(starkPublicKey);
+    await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const tokenId = starkwareCrypto.hashTokenId(token);
     const { hash: txhash } = await exchangeContract.deposit(
@@ -80,7 +103,7 @@ export class StarkwareController {
     token: starkwareCrypto.Token,
     vaultId: string
   ): Promise<MethodResults.StarkDepositCancelResult> {
-    this.assertStarkPublicKey(starkPublicKey);
+    await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const tokenId = starkwareCrypto.hashTokenId(token);
     const { hash: txhash } = await exchangeContract.depositCancel(
@@ -96,7 +119,7 @@ export class StarkwareController {
     token: starkwareCrypto.Token,
     vaultId: string
   ): Promise<MethodResults.StarkDepositReclaimResult> {
-    this.assertStarkPublicKey(starkPublicKey);
+    await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const tokenId = starkwareCrypto.hashTokenId(token);
     const { hash: txhash } = await exchangeContract.depositReclaim(
@@ -114,7 +137,7 @@ export class StarkwareController {
     nonce: string,
     expirationTimestamp: string
   ): Promise<MethodResults.StarkTransferResult> {
-    this.assertStarkPublicKey(from.starkPublicKey);
+    await this.assertStarkPublicKey(from.starkPublicKey);
     const senderVaultId = from.vaultId;
     const receiverVaultId = to.vaultId;
     const receiverPublicKey = to.starkPublicKey;
@@ -127,9 +150,9 @@ export class StarkwareController {
       receiverPublicKey,
       expirationTimestamp
     );
-    const keyPair = this.getKeyPair();
+    const keyPair = await this.getActiveKeyPair();
     const signature = starkwareCrypto.sign(keyPair, msg);
-    const starkSignature = this.formatSignature(signature);
+    const starkSignature = serializeSignature(signature);
     return { starkSignature };
   }
 
@@ -140,7 +163,7 @@ export class StarkwareController {
     nonce: string,
     expirationTimestamp: string
   ): Promise<MethodResults.StarkCreateOrderResult> {
-    this.assertStarkPublicKey(starkPublicKey);
+    await this.assertStarkPublicKey(starkPublicKey);
     const vaultSell = sell.vaultId;
     const vaultBuy = buy.vaultId;
     const amountSell = sell.quantizedAmount;
@@ -157,9 +180,9 @@ export class StarkwareController {
       nonce,
       expirationTimestamp
     );
-    const keyPair = this.getKeyPair();
+    const keyPair = await this.getActiveKeyPair();
     const signature = starkwareCrypto.sign(keyPair, msg);
-    const starkSignature = this.formatSignature(signature);
+    const starkSignature = serializeSignature(signature);
     return { starkSignature };
   }
 
@@ -209,7 +232,7 @@ export class StarkwareController {
     token: starkwareCrypto.Token,
     quantizedAmount: string
   ): Promise<MethodResults.StarkEscapeResult> {
-    this.assertStarkPublicKey(starkPublicKey);
+    await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const tokenId = starkwareCrypto.hashTokenId(token);
     const { hash: txhash } = await exchangeContract.escape(
@@ -219,118 +242,6 @@ export class StarkwareController {
       quantizedAmount
     );
     return { txhash };
-  }
-
-  public getExchangeContract(contractAddress: string) {
-    const provider = this.wallet.provider;
-    return new Contract(contractAddress, abi, provider);
-  }
-
-  public formatSignature(signature: Signature) {
-    return '0x' + signature.r.toString(16) + signature.s.toString(16);
-  }
-
-  public formatLabelPrefix(label: string, labelPrefix?: string) {
-    return labelPrefix ? `${labelPrefix} ${label}` : `${label}`;
-  }
-
-  public formatTokenLabel(token: starkwareCrypto.Token, labelPrefix?: string) {
-    const label = this.formatLabelPrefix('Asset', labelPrefix);
-    if (token.type === 'ETH') {
-      return [{ label, value: 'Ether' }];
-    } else if (token.type === 'ERC20') {
-      return [
-        { label, value: 'ERC20 Token' },
-        {
-          label: this.formatLabelPrefix('Token Address', labelPrefix),
-          value: (token.data as starkwareCrypto.ERC20TokenData).tokenAddress,
-        },
-      ];
-    } else if (token.type === 'ERC721') {
-      return [
-        { label, value: 'ERC721 NFT' },
-        {
-          label: this.formatLabelPrefix('Token ID', labelPrefix),
-          value: (token.data as starkwareCrypto.ERC721TokenData).tokenId,
-        },
-      ];
-    } else {
-      return [{ label, value: 'Unknown' }];
-    }
-  }
-
-  public formatTokenAmount(
-    quantizedAmount: string,
-    token: starkwareCrypto.Token
-  ) {
-    let amount = quantizedAmount;
-    const quantum =
-      (token.data as
-        | starkwareCrypto.ERC20TokenData
-        | starkwareCrypto.ETHTokenData).quantum || '0';
-    if (quantum) {
-      amount = new BN(amount).div(new BN('10').pow(new BN(quantum))).toString();
-    }
-    return amount;
-  }
-
-  public formatTokenAmountLabel(
-    quantizedAmount: string,
-    token: starkwareCrypto.Token,
-    labelPrefix?: string
-  ) {
-    return [
-      ...this.formatTokenLabel(token),
-      {
-        label: this.formatLabelPrefix('Amount', labelPrefix),
-        value: this.formatTokenAmount(quantizedAmount, token),
-      },
-    ];
-  }
-
-  public getKeyPair(path?: string): starkwareCrypto.KeyPair {
-    if (!path) {
-      return this.getActiveKeyPair();
-    }
-    const match = this.accountMapping[path];
-    if (match) {
-      return match;
-    }
-    const activeKeyPair = starkwareCrypto.getKeyPairFromPath(
-      this.wallet.mnemonic,
-      path
-    );
-    this.setActiveKeyPair(path, activeKeyPair);
-    return activeKeyPair;
-  }
-
-  public getStarkPublicKey(path?: string): string {
-    const keyPair = this.getKeyPair(path);
-    const publicKey = starkwareCrypto.getPublic(keyPair);
-    const starkPublicKey = starkwareCrypto.getStarkKey(publicKey);
-    return starkPublicKey;
-  }
-
-  public assertStarkPublicKey(starkPublicKey: string) {
-    if (this.getStarkPublicKey() !== starkPublicKey) {
-      throw new Error('StarkPublicKey request does not match active key');
-    }
-  }
-
-  public setActiveKeyPair(
-    path: string,
-    activeKeyPair: starkwareCrypto.KeyPair
-  ) {
-    this.activeKeyPair = this.accountMapping[path] = activeKeyPair;
-    this.store.set(this.accountMappingKey, this.accountMapping[path]);
-  }
-
-  public getActiveKeyPair() {
-    if (this.activeKeyPair) {
-      return this.activeKeyPair;
-    } else {
-      throw new Error('No Active Starkware KeyPair - please provide a path');
-    }
   }
 
   public async resolve(payload: any) {
@@ -449,6 +360,65 @@ export class StarkwareController {
         throw new Error(`Unknown Starkware RPC Method: ${method}`);
     }
     return response;
+  }
+
+  // -- Private ------------------------------------------------------- //
+
+  private async assertStarkPublicKey(starkPublicKey: string) {
+    if ((await this.getStarkPublicKey()) !== starkPublicKey) {
+      throw new Error('StarkPublicKey request does not match active key');
+    }
+  }
+
+  private async getKeyPairFromPath(
+    path?: string
+  ): Promise<starkwareCrypto.KeyPair> {
+    const accountMapping = await this.getAccountMapping();
+    if (!path) {
+      return this.getActiveKeyPair();
+    }
+    const match = accountMapping[path];
+    if (match) {
+      return match;
+    }
+    const activeKeyPair = starkwareCrypto.getKeyPairFromPath(
+      this.wallet.mnemonic,
+      path
+    );
+    await this.setActiveKeyPair(path, activeKeyPair);
+    return activeKeyPair;
+  }
+
+  public async setActiveKeyPair(
+    path: string,
+    activeKeyPair: starkwareCrypto.KeyPair
+  ) {
+    const accountMapping = await this.getAccountMapping();
+    accountMapping[path] = activeKeyPair;
+    this.accountMapping = accountMapping;
+    this.activeKeyPair = activeKeyPair;
+    await this.store.set(this.accountMappingKey, accountMapping);
+  }
+
+  private getExchangeContract(contractAddress: string) {
+    const provider = this.wallet.provider;
+    return new ethers.Contract(contractAddress, abi, provider);
+  }
+
+  private async getAccountMapping(): Promise<StarkwareAccountMapping> {
+    if (typeof this.accountMapping !== 'undefined') {
+      return this.accountMapping;
+    }
+
+    const accountMapping: StarkwareAccountMapping =
+      (await this.store.get(this.accountMappingKey)) || {};
+    this.accountMapping = accountMapping;
+
+    const paths = Object.keys(accountMapping);
+    if (paths.length && !this.activeKeyPair) {
+      this.activeKeyPair = accountMapping[paths[0]];
+    }
+    return accountMapping;
   }
 }
 
