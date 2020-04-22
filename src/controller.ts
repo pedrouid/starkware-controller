@@ -248,6 +248,12 @@ export class StarkwareController {
     let response: { id: number; result: any };
     const { id, method, params } = payload;
     switch (method) {
+      case 'stark_account':
+        response = {
+          id,
+          result: await this.account(params.path),
+        };
+        break;
       case 'stark_register':
         response = {
           id,
