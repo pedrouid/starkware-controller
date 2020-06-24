@@ -407,8 +407,7 @@ export class StarkwareController {
   }
 
   private getExchangeContract(contractAddress: string) {
-    const provider = this.wallet.provider;
-    return new ethers.Contract(contractAddress, abi, provider);
+    return new ethers.Contract(contractAddress, abi, this.wallet);
   }
 
   private async getAccountMapping(): Promise<StarkwareAccountMapping> {
