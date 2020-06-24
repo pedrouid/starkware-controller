@@ -259,7 +259,7 @@ export class StarkwareController {
           id,
           result: await this.register(
             params.contractAddress,
-            params.StarkPublicKey,
+            params.starkPublicKey,
             params.operatorSignature
           ),
         };
@@ -269,7 +269,7 @@ export class StarkwareController {
           id,
           result: await this.deposit(
             params.contractAddress,
-            params.StarkPublicKey,
+            params.starkPublicKey,
             params.quantizedAmount,
             params.token,
             params.vaultId
@@ -281,7 +281,7 @@ export class StarkwareController {
           id,
           result: await this.depositCancel(
             params.contractAddress,
-            params.StarkPublicKey,
+            params.starkPublicKey,
             params.token,
             params.vaultId
           ),
@@ -292,7 +292,7 @@ export class StarkwareController {
           id,
           result: await this.depositReclaim(
             params.contractAddress,
-            params.StarkPublicKey,
+            params.starkPublicKey,
             params.token,
             params.vaultId
           ),
