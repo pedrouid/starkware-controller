@@ -1,5 +1,5 @@
 import BN from 'bn.js';
-import * as ethers from 'ethers';
+import { Wallet, Contract, providers } from 'ethers';
 import * as starkwareCrypto from 'starkware-crypto';
 
 import * as abi from './StarkExchangeABI.json';
@@ -24,19 +24,17 @@ export class StarkwareController {
   private activeKeyPair: starkwareCrypto.KeyPair | undefined;
 
   constructor(
-    private readonly wallet: ethers.Wallet,
+    private readonly wallet: Wallet,
     private store: Store,
     public accountMappingKey: string = DEFAULT_ACCOUNT_MAPPING_KEY
   ) {}
 
   // -- Get / Set ----------------------------------------------------- //
 
-  public setProvider(
-    provider: string | ethers.ethers.providers.JsonRpcProvider
-  ): void {
+  public setProvider(provider: string | providers.JsonRpcProvider): void {
     this.wallet.connect(
       typeof provider === 'string'
-        ? new ethers.ethers.providers.JsonRpcProvider(provider)
+        ? new providers.JsonRpcProvider(provider)
         : provider
     );
   }
@@ -60,8 +58,16 @@ export class StarkwareController {
   // -- JSON-RPC ----------------------------------------------------- //
 
   public async account(
-    path: string
+    layer: string,
+    application: string,
+    index: string
   ): Promise<MethodResults.StarkAccountResult> {
+    const path = starkwareCrypto.getAccountPath(
+      layer,
+      application,
+      this.wallet.address,
+      index
+    );
     const starkPublicKey = await this.getStarkPublicKey(path);
     return { starkPublicKey };
   }
@@ -251,7 +257,11 @@ export class StarkwareController {
       case 'stark_account':
         response = {
           id,
-          result: await this.account(params.path),
+          result: await this.account(
+            params.layer,
+            params.application,
+            params.index
+          ),
         };
         break;
       case 'stark_register':
@@ -388,7 +398,7 @@ export class StarkwareController {
       return match;
     }
     const activeKeyPair = starkwareCrypto.getKeyPairFromPath(
-      this.wallet.mnemonic,
+      this.wallet.mnemonic.phrase,
       path
     );
     await this.setActiveKeyPair(path, activeKeyPair);
@@ -407,7 +417,7 @@ export class StarkwareController {
   }
 
   private getExchangeContract(contractAddress: string) {
-    return new ethers.Contract(contractAddress, abi, this.wallet);
+    return new Contract(contractAddress, abi, this.wallet);
   }
 
   private async getAccountMapping(): Promise<StarkwareAccountMapping> {
