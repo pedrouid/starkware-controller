@@ -42,7 +42,7 @@ export class StarkwareController {
   public async getStarkPublicKey(path?: string): Promise<string> {
     const keyPair = await this.getKeyPairFromPath(path);
     const publicKey = starkwareCrypto.getPublic(keyPair);
-    const starkPublicKey = starkwareCrypto.getStarkKey(publicKey);
+    const starkPublicKey = starkwareCrypto.getStarkPublicKey(publicKey);
     return starkPublicKey;
   }
 
