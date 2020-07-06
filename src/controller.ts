@@ -405,7 +405,7 @@ export class StarkwareController {
     return activeKeyPair;
   }
 
-  public async setActiveKeyPair(
+  private async setActiveKeyPair(
     path: string,
     activeKeyPair: starkwareCrypto.KeyPair
   ) {
