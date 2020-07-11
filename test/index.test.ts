@@ -1,6 +1,6 @@
 import { Wallet } from 'ethers';
 
-import StarkwareController from '../src';
+import StarkwareController, { TokenTypes } from '../src';
 
 const storage = {};
 
@@ -27,6 +27,8 @@ const wallet = Wallet.fromMnemonic(mnemonic);
 const starkPublicKey =
   '0x017e159e246999ee9ce7d1103d5d0d52c468bcb385d202ef362de2f878162c48';
 
+// const starkSignature = '0x7130036cfee14ee468f84538da0b2c71f11908f3dcc4c0b7fb28c2e0c8504d1e4e3191d2adb180a2ec31eff2366381e2ec807426f232a6cae2387d6d7886e1c';
+
 describe('starkware-controller', () => {
   let controller: StarkwareController;
   beforeEach(() => {
@@ -50,4 +52,39 @@ describe('starkware-controller', () => {
     expect(res).toBeTruthy();
     expect(res.starkPublicKey).toEqual(starkPublicKey);
   });
+
+  // it('should resolve stark_transfer', async () => {
+  //   const params = {
+  //     contractAddress: '0xC5273AbFb36550090095B1EDec019216AD21BE6c',
+  //     from: {
+  //       starkPublicKey,
+  //       vaultId: '34',
+  //     },
+  //     to: {
+  //       starkPublicKey:
+  //         '0x5fa3383597691ea9d827a79e1a4f0f7949435ced18ca9619de8ab97e661020',
+  //       vaultId: '21',
+  //     },
+  //     token: {
+  //       quantum: '',
+  //       tokenAddress: '',
+  //     },
+  //     quantizedAmount: '2154549703648910716',
+  //     nonce: '1',
+  //     expirationTimestamp: '438953',
+  //   };
+  //   const res = await controller.transfer(
+  //     params.from,
+  //     params.to,
+  //     {
+  //       type: 'ERC20',
+  //       data: params.token,
+  //     },
+  //     params.quantizedAmount,
+  //     params.nonce,
+  //     params.expirationTimestamp
+  //   );
+  //   expect(res).toBeTruthy();
+  //   expect(res.starkSignature).toEqual(starkSignature);
+  // });
 });

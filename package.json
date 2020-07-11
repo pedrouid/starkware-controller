@@ -37,18 +37,18 @@
     "prepare": "yarn lint && yarn build && yarn test"
   },
   "dependencies": {
-    "ethers": "^5.0.3",
-    "starkware-crypto": "^1.8.0",
-    "starkware-types": "1.0.0"
+    "ethers": "^5.0.5",
+    "starkware-crypto": "^1.9.0",
+    "starkware-types": "1.1.0"
   },
   "devDependencies": {
     "@types/jest": "25.1.1",
     "@types/node": "13.7.0",
-    "husky": "4.2.1",
-    "tsdx": "0.12.3",
+    "husky": "4.2.5",
+    "tsdx": "0.13.2",
     "tslib": "1.10.0",
     "typescript": "3.7.5",
-    "webpack": "4.41.6",
+    "webpack": "4.43.0",
     "webpack-cli": "3.3.11"
   },
   "husky": {

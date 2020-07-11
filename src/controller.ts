@@ -1,21 +1,10 @@
-import BN from 'bn.js';
 import { Wallet, Contract, providers } from 'ethers';
-import * as starkwareCrypto from 'starkware-crypto';
 
 import * as abi from './StarkExchangeABI.json';
+import * as starkwareCrypto from './crypto';
 import { Store, StarkwareAccountMapping, MethodResults } from './interfaces';
 
 const DEFAULT_ACCOUNT_MAPPING_KEY = 'STARKWARE_ACCOUNT_MAPPING';
-
-interface Signature {
-  r: BN;
-  s: BN;
-  recoveryParam: number | null;
-}
-
-function serializeSignature(signature: Signature): string {
-  return '0x' + signature.r.toString(16) + signature.s.toString(16);
-}
 
 // -- StarkwareController --------------------------------------------- //
 
@@ -158,7 +147,7 @@ export class StarkwareController {
     );
     const keyPair = await this.getActiveKeyPair();
     const signature = starkwareCrypto.sign(keyPair, msg);
-    const starkSignature = serializeSignature(signature);
+    const starkSignature = starkwareCrypto.serializeSignature(signature);
     return { starkSignature };
   }
 
@@ -188,7 +177,7 @@ export class StarkwareController {
     );
     const keyPair = await this.getActiveKeyPair();
     const signature = starkwareCrypto.sign(keyPair, msg);
-    const starkSignature = serializeSignature(signature);
+    const starkSignature = starkwareCrypto.serializeSignature(signature);
     return { starkSignature };
   }
 
