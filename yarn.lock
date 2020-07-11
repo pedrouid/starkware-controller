@@ -7123,10 +7123,10 @@ stack-utils@^1.0.1:
   resolved "https://registry.yarnpkg.com/stack-utils/-/stack-utils-1.0.2.tgz#33eba3897788558bebfc2db059dc158ec36cebb8"
   integrity sha512-MTX+MeG5U994cazkjd/9KNAapsHnibjMLnfXodlkXw76JEea0UiNzrqidzo1emMwk7w5Qhc9jd4Bn9TBb1MFwA==
 
-starkware-crypto@^1.9.0:
-  version "1.9.0"
-  resolved "https://registry.yarnpkg.com/starkware-crypto/-/starkware-crypto-1.9.0.tgz#45b5d6d0a86fc3f5db2a3a8826c07946dda03258"
-  integrity sha512-3v4pdzrMSqP0TV9Fx7olLBP8Fl2I2dcSLvCtD3Vf8n2FgKgjaNhv5iYCnp/hQpB0rYFahI+fuzF3o/7DtExwoQ==
+starkware-crypto@^1.9.1:
+  version "1.9.1"
+  resolved "https://registry.yarnpkg.com/starkware-crypto/-/starkware-crypto-1.9.1.tgz#54272a31221cf0d4581d6627b24458237aab4201"
+  integrity sha512-TC8uWMPYLSbHSq+sb149sN2kUzj4T1N/w4HBjc50476K2Vb988soewM0NGOlt4EyflS158uHpCOgRG4OSEmoWw==
   dependencies:
     bip39 "3.0.2"
     bn.js "5.1.2"
