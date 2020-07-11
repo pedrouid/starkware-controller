@@ -242,129 +242,141 @@ export class StarkwareController {
   public async resolve(payload: any) {
     let response: { id: number; result: any };
     const { id, method, params } = payload;
-    switch (method) {
-      case 'stark_account':
-        response = {
-          id,
-          result: await this.account(
-            params.layer,
-            params.application,
-            params.index
-          ),
-        };
-        break;
-      case 'stark_register':
-        response = {
-          id,
-          result: await this.register(
-            params.contractAddress,
-            params.starkPublicKey,
-            params.operatorSignature
-          ),
-        };
-        break;
-      case 'stark_deposit':
-        response = {
-          id,
-          result: await this.deposit(
-            params.contractAddress,
-            params.starkPublicKey,
-            params.quantizedAmount,
-            params.token,
-            params.vaultId
-          ),
-        };
-        break;
-      case 'stark_depositCancel':
-        response = {
-          id,
-          result: await this.depositCancel(
-            params.contractAddress,
-            params.starkPublicKey,
-            params.token,
-            params.vaultId
-          ),
-        };
-        break;
-      case 'stark_depositReclaim':
-        response = {
-          id,
-          result: await this.depositReclaim(
-            params.contractAddress,
-            params.starkPublicKey,
-            params.token,
-            params.vaultId
-          ),
-        };
-        break;
-      case 'stark_transfer':
-        response = {
-          id,
-          result: await this.transfer(
-            params.from,
-            params.to,
-            params.token,
-            params.quantizedAmount,
-            params.nonce,
-            params.expirationTimestamp
-          ),
-        };
-        break;
-      case 'stark_createOrder':
-        response = {
-          id,
-          result: await this.createOrder(
-            params.starkPublicKey,
-            params.sell,
-            params.buy,
-            params.nonce,
-            params.expirationTimestamp
-          ),
-        };
-        break;
-      case 'stark_withdrawal':
-        response = {
-          id,
-          result: await this.withdrawal(params.contractAddress, params.token),
-        };
-        break;
-      case 'stark_fullWithdrawal':
-        response = {
-          id,
-          result: await this.fullWithdrawal(
-            params.contractAddress,
-            params.vaultId
-          ),
-        };
-        break;
-      case 'stark_freeze':
-        response = {
-          id,
-          result: await this.freeze(params.contractAddress, params.vaultId),
-        };
-        break;
-      case 'stark_verifyEscape':
-        response = {
-          id,
-          result: await this.verifyEscape(params.contractAddress, params.proof),
-        };
-        break;
-      case 'stark_escape':
-        response = {
-          id,
-          result: await this.escape(
-            params.contractAddress,
-            params.starkPublicKey,
-            params.vaultId,
-            params.token,
-            params.quantizedAmount
-          ),
-        };
-        break;
-      default:
-        throw new Error(`Unknown Starkware RPC Method: ${method}`);
+    try {
+      switch (method) {
+        case 'stark_account':
+          response = {
+            id,
+            result: await this.account(
+              params.layer,
+              params.application,
+              params.index
+            ),
+          };
+          break;
+        case 'stark_register':
+          response = {
+            id,
+            result: await this.register(
+              params.contractAddress,
+              params.starkPublicKey,
+              params.operatorSignature
+            ),
+          };
+          break;
+        case 'stark_deposit':
+          response = {
+            id,
+            result: await this.deposit(
+              params.contractAddress,
+              params.starkPublicKey,
+              params.quantizedAmount,
+              params.token,
+              params.vaultId
+            ),
+          };
+          break;
+        case 'stark_depositCancel':
+          response = {
+            id,
+            result: await this.depositCancel(
+              params.contractAddress,
+              params.starkPublicKey,
+              params.token,
+              params.vaultId
+            ),
+          };
+          break;
+        case 'stark_depositReclaim':
+          response = {
+            id,
+            result: await this.depositReclaim(
+              params.contractAddress,
+              params.starkPublicKey,
+              params.token,
+              params.vaultId
+            ),
+          };
+          break;
+        case 'stark_transfer':
+          response = {
+            id,
+            result: await this.transfer(
+              params.from,
+              params.to,
+              params.token,
+              params.quantizedAmount,
+              params.nonce,
+              params.expirationTimestamp
+            ),
+          };
+          break;
+        case 'stark_createOrder':
+          response = {
+            id,
+            result: await this.createOrder(
+              params.starkPublicKey,
+              params.sell,
+              params.buy,
+              params.nonce,
+              params.expirationTimestamp
+            ),
+          };
+          break;
+        case 'stark_withdrawal':
+          response = {
+            id,
+            result: await this.withdrawal(params.contractAddress, params.token),
+          };
+          break;
+        case 'stark_fullWithdrawal':
+          response = {
+            id,
+            result: await this.fullWithdrawal(
+              params.contractAddress,
+              params.vaultId
+            ),
+          };
+          break;
+        case 'stark_freeze':
+          response = {
+            id,
+            result: await this.freeze(params.contractAddress, params.vaultId),
+          };
+          break;
+        case 'stark_verifyEscape':
+          response = {
+            id,
+            result: await this.verifyEscape(
+              params.contractAddress,
+              params.proof
+            ),
+          };
+          break;
+        case 'stark_escape':
+          response = {
+            id,
+            result: await this.escape(
+              params.contractAddress,
+              params.starkPublicKey,
+              params.vaultId,
+              params.token,
+              params.quantizedAmount
+            ),
+          };
+          break;
+        default:
+          throw new Error(`Unknown Starkware RPC Method: ${method}`);
+      }
+      return response;
+    } catch (error) {
+      return {
+        id: payload.id,
+        error: {
+          message: error.message,
+        },
+      };
     }
-    return response;
   }
 
   // -- Private ------------------------------------------------------- //
