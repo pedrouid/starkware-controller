@@ -384,7 +384,7 @@ export class StarkwareController {
     }
     const match = accountMapping[path];
     if (match) {
-      return match;
+      return starkwareCrypto.ec.keyFromPrivate(match);
     }
     const activeKeyPair = starkwareCrypto.getKeyPairFromPath(
       this.wallet.mnemonic.phrase,
@@ -399,7 +399,7 @@ export class StarkwareController {
     activeKeyPair: starkwareCrypto.KeyPair
   ) {
     const accountMapping = await this.getAccountMapping();
-    accountMapping[path] = activeKeyPair;
+    accountMapping[path] = activeKeyPair.getPrivate('hex');
     this.accountMapping = accountMapping;
     this.activeKeyPair = activeKeyPair;
     await this.store.set(this.accountMappingKey, accountMapping);

@@ -1,7 +1,5 @@
-import * as starkwareCrypto from 'starkware-crypto';
-
 export interface StarkwareAccountMapping {
-  [path: string]: starkwareCrypto.KeyPair;
+  [path: string]: string;
 }
 export interface Store {
   set(key: string, data: any): Promise<void>;
