@@ -1,6 +1,6 @@
 import { Wallet } from 'ethers';
 
-import StarkwareController, { TokenTypes } from '../src';
+import StarkwareController from '../src';
 
 const storage = {};
 
