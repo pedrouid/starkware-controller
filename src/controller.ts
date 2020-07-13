@@ -432,7 +432,7 @@ export class StarkwareController {
 
     const paths = Object.keys(accountMapping);
     if (paths.length && !this.activeKeyPair) {
-      this.activeKeyPair = accountMapping[paths[0]];
+      this.activeKeyPair = starkwareCrypto.getKeyPair(accountMapping[paths[0]])
     }
     return accountMapping;
   }
