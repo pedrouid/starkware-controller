@@ -13,7 +13,7 @@ export class StarkwareController {
   private activeKeyPair: starkwareCrypto.KeyPair | undefined;
 
   constructor(
-    private readonly wallet: Wallet,
+    private wallet: Wallet,
     private store: Store,
     public accountMappingKey: string = DEFAULT_ACCOUNT_MAPPING_KEY
   ) {}
@@ -21,7 +21,7 @@ export class StarkwareController {
   // -- Get / Set ----------------------------------------------------- //
 
   public setProvider(provider: string | providers.JsonRpcProvider): void {
-    this.wallet.connect(
+    this.wallet = this.wallet.connect(
       typeof provider === 'string'
         ? new providers.JsonRpcProvider(provider)
         : provider
@@ -432,7 +432,7 @@ export class StarkwareController {
 
     const paths = Object.keys(accountMapping);
     if (paths.length && !this.activeKeyPair) {
-      this.activeKeyPair = starkwareCrypto.getKeyPair(accountMapping[paths[0]])
+      this.activeKeyPair = starkwareCrypto.getKeyPair(accountMapping[paths[0]]);
     }
     return accountMapping;
   }
