@@ -1,6 +1,6 @@
 import StarkwareController from './controller';
+import * as StarkwareCrypto from './crypto';
 
-export * from './crypto';
-export * from './interfaces';
 export * from './types';
+export const crypto = StarkwareCrypto;
 export default StarkwareController;

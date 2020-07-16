@@ -5,15 +5,25 @@ Starkware JSON-RPC Controller Library
 ## Example
 
 ```typescript
-import * as ethers from 'ethers';
+import { Wallet } from 'ethers';
 import StarkwareController from 'starkware-controller';
 
-const wallet = ethers.Wallet.createRandom();
+const rpcUrl = 'https://ropsten.mycustomnode.com';
+
+const mnemonic = `puzzle number lab sense puzzle escape glove faith strike poem acoustic picture grit struggle know tuna soul indoor thumb dune fit job timber motor`;
+
+const wallet = Wallet.fromMnemonic(mnemonic).connect(rpcUrl);
 
 const store = {
-  set: async (key: string, data: any) => {},
-  get: async (key: string) => {},
-  remove: async (key: string) => {},
+  set: async (key: string, data: any) => {
+    window.localStorage.setItem(key, JSON.stringify(data));
+  },
+  get: async (key: string) => {
+    return JSON.parse(window.localStorage.getItem(key));
+  },
+  remove: async (key: string) => {
+    window.localStorage.removeItem(key);
+  },
 };
 
 //  Create StarkwareController
@@ -98,18 +108,22 @@ interface StarkwareController {
   ): Promise<MethodResults.StarkCreateOrderResult>;
   withdrawal(
     contractAddress: string,
+    starkPublicKey: string,
     token: starkwareCrypto.Token
   ): Promise<MethodResults.StarkWithdrawalResult>;
   fullWithdrawal(
     contractAddress: string,
+    starkPublicKey: string,
     vaultId: string
   ): Promise<MethodResults.StarkFullWithdrawalResult>;
   freeze(
     contractAddress: string,
+    starkPublicKey: string,
     vaultId: string
   ): Promise<MethodResults.StarkFreezeResult>;
   verifyEscape(
     contractAddress: string,
+    starkPublicKey: string,
     proof: string[]
   ): Promise<MethodResults.StarkVerifyEscapeResult>;
   escape(

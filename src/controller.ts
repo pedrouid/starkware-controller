@@ -2,7 +2,8 @@ import { Wallet, Contract, providers } from 'ethers';
 
 import abi from './abi';
 import * as starkwareCrypto from './crypto';
-import { Store, StarkwareAccountMapping, MethodResults } from './interfaces';
+import { Store, StarkwareAccountMapping, MethodResults } from './types';
+import { MethodParams } from 'starkware-types';
 
 const DEFAULT_ACCOUNT_MAPPING_KEY = 'STARKWARE_ACCOUNT_MAPPING';
 
@@ -249,137 +250,149 @@ export class StarkwareController {
 
   public async resolve(payload: any) {
     let response: { id: number; result: any };
-    const { id, method, params } = payload;
+    const { id, method } = payload;
     try {
       switch (method) {
         case 'stark_account':
+          const accountParams = payload.params as MethodParams.StarkAccountParams;
           response = {
             id,
             result: await this.account(
-              params.layer,
-              params.application,
-              params.index
+              accountParams.layer,
+              accountParams.application,
+              accountParams.index
             ),
           };
           break;
         case 'stark_register':
+          const registerParams = payload.params as MethodParams.StarkRegisterParams;
           response = {
             id,
             result: await this.register(
-              params.contractAddress,
-              params.starkPublicKey,
-              params.operatorSignature
+              registerParams.contractAddress,
+              registerParams.starkPublicKey,
+              registerParams.operatorSignature
             ),
           };
           break;
         case 'stark_deposit':
+          const depositParams = payload.params as MethodParams.StarkDepositParams;
           response = {
             id,
             result: await this.deposit(
-              params.contractAddress,
-              params.starkPublicKey,
-              params.quantizedAmount,
-              params.token,
-              params.vaultId
+              depositParams.contractAddress,
+              depositParams.starkPublicKey,
+              depositParams.quantizedAmount,
+              depositParams.token,
+              depositParams.vaultId
             ),
           };
           break;
         case 'stark_depositCancel':
+          const depositCancelParams = payload.params as MethodParams.StarkDepositCancelParams;
           response = {
             id,
             result: await this.depositCancel(
-              params.contractAddress,
-              params.starkPublicKey,
-              params.token,
-              params.vaultId
+              depositCancelParams.contractAddress,
+              depositCancelParams.starkPublicKey,
+              depositCancelParams.token,
+              depositCancelParams.vaultId
             ),
           };
           break;
         case 'stark_depositReclaim':
+          const depositReclaimParams = payload.params as MethodParams.StarkDepositReclaimParams;
           response = {
             id,
             result: await this.depositReclaim(
-              params.contractAddress,
-              params.starkPublicKey,
-              params.token,
-              params.vaultId
+              depositReclaimParams.contractAddress,
+              depositReclaimParams.starkPublicKey,
+              depositReclaimParams.token,
+              depositReclaimParams.vaultId
             ),
           };
           break;
         case 'stark_transfer':
+          const transferParams = payload.params as MethodParams.StarkTransferParams;
           response = {
             id,
             result: await this.transfer(
-              params.from,
-              params.to,
-              params.token,
-              params.quantizedAmount,
-              params.nonce,
-              params.expirationTimestamp
+              transferParams.from,
+              transferParams.to,
+              transferParams.token,
+              transferParams.quantizedAmount,
+              transferParams.nonce,
+              transferParams.expirationTimestamp
             ),
           };
           break;
         case 'stark_createOrder':
+          const createOrderParams = payload.params as MethodParams.StarkCreateOrderParams;
           response = {
             id,
             result: await this.createOrder(
-              params.starkPublicKey,
-              params.sell,
-              params.buy,
-              params.nonce,
-              params.expirationTimestamp
+              createOrderParams.starkPublicKey,
+              createOrderParams.sell,
+              createOrderParams.buy,
+              createOrderParams.nonce,
+              createOrderParams.expirationTimestamp
             ),
           };
           break;
         case 'stark_withdrawal':
+          const withdrawalParams = payload.params as MethodParams.StarkWithdrawalParams;
           response = {
             id,
             result: await this.withdrawal(
-              params.contractAddress,
-              params.starkPublicKey,
-              params.token
+              withdrawalParams.contractAddress,
+              withdrawalParams.starkPublicKey,
+              withdrawalParams.token
             ),
           };
           break;
         case 'stark_fullWithdrawal':
+          const fullWithdrawalParams = payload.params as MethodParams.StarkFullWithdrawalParams;
           response = {
             id,
             result: await this.fullWithdrawal(
-              params.contractAddress,
-              params.starkPublicKey,
-              params.vaultId
+              fullWithdrawalParams.contractAddress,
+              fullWithdrawalParams.starkPublicKey,
+              fullWithdrawalParams.vaultId
             ),
           };
           break;
         case 'stark_freeze':
+          const freeezeParams = payload.params as MethodParams.StarkFreezeParams;
           response = {
             id,
             result: await this.freeze(
-              params.contractAddress,
-              params.starkPublicKey,
-              params.vaultId
+              freeezeParams.contractAddress,
+              freeezeParams.starkPublicKey,
+              freeezeParams.vaultId
             ),
           };
           break;
         case 'stark_verifyEscape':
+          const verifyEscapeParams = payload.params as MethodParams.StarkVerifyEscapeParams;
           response = {
             id,
             result: await this.verifyEscape(
-              params.contractAddress,
-              params.starkPublicKey,
-              params.proof
+              verifyEscapeParams.contractAddress,
+              verifyEscapeParams.starkPublicKey,
+              verifyEscapeParams.proof
             ),
           };
           break;
         case 'stark_escape':
+          const escapeParams = payload.params as MethodParams.StarkEscapeParams;
           response = {
             id,
             result: await this.escape(
-              params.contractAddress,
-              params.starkPublicKey,
-              params.vaultId,
-              params.token,
-              params.quantizedAmount
+              escapeParams.contractAddress,
+              escapeParams.starkPublicKey,
+              escapeParams.vaultId,
+              escapeParams.token,
+              escapeParams.quantizedAmount
             ),
           };
           break;
