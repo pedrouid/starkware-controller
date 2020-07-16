@@ -2,12 +2,7 @@ import { Wallet, Contract, providers } from 'ethers';
 
 import abi from './abi';
 import * as starkwareCrypto from './crypto';
-import {
-  Store,
-  StarkwareAccountMapping,
-  MethodParams,
-  MethodResults,
-} from './interfaces';
+import { Store, StarkwareAccountMapping, MethodResults } from './interfaces';
 
 const DEFAULT_ACCOUNT_MAPPING_KEY = 'STARKWARE_ACCOUNT_MAPPING';
 
