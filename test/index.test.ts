@@ -27,7 +27,8 @@ const wallet = Wallet.fromMnemonic(mnemonic);
 const starkPublicKey =
   '0x017e159e246999ee9ce7d1103d5d0d52c468bcb385d202ef362de2f878162c48';
 
-// const starkSignature = '0x7130036cfee14ee468f84538da0b2c71f11908f3dcc4c0b7fb28c2e0c8504d1e4e3191d2adb180a2ec31eff2366381e2ec807426f232a6cae2387d6d7886e1c';
+// const starkSignature =
+//   '0x7130036cfee14ee468f84538da0b2c71f11908f3dcc4c0b7fb28c2e0c8504d1e4e3191d2adb180a2ec31eff2366381e2ec807426f232a6cae2387d6d7886e1c';
 
 describe('starkware-controller', () => {
   let controller: StarkwareController;
@@ -44,6 +45,9 @@ describe('starkware-controller', () => {
       method: 'stark_account',
       params: { layer, application, index },
     });
+    if ('error' in res) {
+      throw new Error(res.error.message);
+    }
     expect(res).toBeTruthy();
     expect(res.result.starkPublicKey).toEqual(starkPublicKey);
   });
