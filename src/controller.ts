@@ -1,6 +1,6 @@
 import { Wallet, Contract, providers } from 'ethers';
 
-import * as abi from './StarkExchangeABI.json';
+import abi from './abi.config';
 import * as starkwareCrypto from './crypto';
 import { Store, StarkwareAccountMapping, MethodResults } from './interfaces';
 

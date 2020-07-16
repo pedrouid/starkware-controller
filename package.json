@@ -37,6 +37,7 @@
     "prepare": "yarn lint && yarn build && yarn test"
   },
   "dependencies": {
+    "dotenv": "^8.2.0",
     "ethers": "^5.0.5",
     "starkware-crypto": "^1.9.1",
     "starkware-types": "1.1.0"
