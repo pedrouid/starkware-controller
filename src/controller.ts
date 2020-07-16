@@ -2,7 +2,12 @@ import { Wallet, Contract, providers } from 'ethers';
 
 import * as abi from './StarkExchangeABI.json';
 import * as starkwareCrypto from './crypto';
-import { Store, StarkwareAccountMapping, MethodResults } from './interfaces';
+import {
+  Store,
+  StarkwareAccountMapping,
+  MethodParams,
+  MethodResults,
+} from './interfaces';
 
 const DEFAULT_ACCOUNT_MAPPING_KEY = 'STARKWARE_ACCOUNT_MAPPING';
 
@@ -183,8 +188,10 @@ export class StarkwareController {
 
   public async withdrawal(
     contractAddress: string,
+    starkPublicKey: string,
     token: starkwareCrypto.Token
   ): Promise<MethodResults.StarkWithdrawalResult> {
+    await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const tokenId = starkwareCrypto.hashTokenId(token);
     const { hash: txhash } = await exchangeContract.withdraw(tokenId);
@@ -193,8 +200,10 @@ export class StarkwareController {
 
   public async fullWithdrawal(
     contractAddress: string,
+    starkPublicKey: string,
     vaultId: string
   ): Promise<MethodResults.StarkFullWithdrawalResult> {
+    await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const { hash: txhash } = await exchangeContract.fullWithdrawalRequest(
       vaultId
@@ -204,8 +213,10 @@ export class StarkwareController {
 
   public async freeze(
     contractAddress: string,
+    starkPublicKey: string,
     vaultId: string
   ): Promise<MethodResults.StarkFreezeResult> {
+    await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const { hash: txhash } = await exchangeContract.freezeRequest(vaultId);
     return { txhash };
@@ -213,8 +224,10 @@ export class StarkwareController {
 
   public async verifyEscape(
     contractAddress: string,
+    starkPublicKey: string,
     proof: string[]
   ): Promise<MethodResults.StarkVerifyEscapeResult> {
+    await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const { hash: txhash } = await exchangeContract.verifyEscape(proof);
     return { txhash };
@@ -326,7 +339,11 @@ export class StarkwareController {
         case 'stark_withdrawal':
           response = {
             id,
-            result: await this.withdrawal(params.contractAddress, params.token),
+            result: await this.withdrawal(
+              params.contractAddress,
+              params.starkPublicKey,
+              params.token
+            ),
           };
           break;
         case 'stark_fullWithdrawal':
@@ -334,6 +351,7 @@ export class StarkwareController {
             id,
             result: await this.fullWithdrawal(
               params.contractAddress,
+              params.starkPublicKey,
               params.vaultId
             ),
           };
@@ -341,7 +359,11 @@ export class StarkwareController {
         case 'stark_freeze':
           response = {
             id,
-            result: await this.freeze(params.contractAddress, params.vaultId),
+            result: await this.freeze(
+              params.contractAddress,
+              params.starkPublicKey,
+              params.vaultId
+            ),
           };
           break;
         case 'stark_verifyEscape':
@@ -349,6 +371,7 @@ export class StarkwareController {
             id,
             result: await this.verifyEscape(
               params.contractAddress,
+              params.starkPublicKey,
               params.proof
             ),
           };
