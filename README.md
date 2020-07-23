@@ -5,14 +5,11 @@ Starkware JSON-RPC Controller Library
 ## Example
 
 ```typescript
-import { Wallet } from 'ethers';
 import StarkwareController from 'starkware-controller';
-
-const rpcUrl = 'https://ropsten.mycustomnode.com';
 
 const mnemonic = `puzzle number lab sense puzzle escape glove faith strike poem acoustic picture grit struggle know tuna soul indoor thumb dune fit job timber motor`;
 
-const wallet = Wallet.fromMnemonic(mnemonic).connect(rpcUrl);
+const rpcUrl = 'https://ropsten.mycustomnode.com';
 
 const store = {
   set: async (key: string, data: any) => {
@@ -28,9 +25,6 @@ const store = {
 
 //  Create StarkwareController
 const controller = new StarkwareController(mnemonic, rpcUrl, store);
-
-// Initiate
-await controller.init();
 
 // Stark Account Params
 const layer = 'starkex';
