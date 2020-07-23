@@ -27,70 +27,57 @@ const store = {
 };
 
 //  Create StarkwareController
-const controller = new StarkwareController(wallet, store);
+const controller = new StarkwareController(mnemonic, rpcUrl, store);
 
 // Initiate
 await controller.init();
 
-// Example payload
-const payload = {
-  id: 1,
-  jsonrpc: '2.0',
-  method: 'stark_account',
-  params: {
-    layer: 'starkex',
-    application: 'starkexdvf',
-    index: '0',
-  },
-};
+// Stark Account Params
+const layer = 'starkex';
+const application = 'starkexdvf';
+const index = '0';
 
-// Resolve payload
-const result = await controller.resolve(payload);
-// {
-//     "id": 1,
-//     "jsonrpc": "2.0",
-//     "result": {
-//         "starkPublicKey":"0x59a543d42bcc9475917247fa7f136298bb385a6388c3df7309955fcb39b8dd4",
-//     }
-// }
+// Get Stark Public Key
+const starkPublicKey = await controller.account(layer, application, index);
+// 0x59a543d42bcc9475917247fa7f136298bb385a6388c3df7309955fcb39b8dd4
 ```
 
 ## API
 
 ```typescript
 interface StarkwareController {
-  setProvider(provider: string | providers.JsonRpcProvider): void;
+  provider: providers.Provider;
+  walletIndex: number;
+  setProvider(provider: string | providers.Provider): void;
+  setWalletIndex(walletIndex: number): void;
   getStarkPublicKey(path?: string): Promise<string>;
-  getActiveKeyPair();
-  account(
-    layer: string,
-    application: string,
-    index: string
-  ): Promise<MethodResults.StarkAccountResult>;
+  getActiveKeyPair(): Promise<starkwareCrypto.KeyPair>;
+  getEthereumAddress(): string;
+  account(layer: string, application: string, index: string): Promise<string>;
   register(
     contractAddress: string,
     starkPublicKey: string,
     operatorSignature: string
-  ): Promise<MethodResults.StarkRegisterResult>;
+  ): Promise<PopulatedTransaction>;
   deposit(
     contractAddress: string,
     starkPublicKey: string,
     quantizedAmount: string,
     token: starkwareCrypto.Token,
     vaultId: string
-  ): Promise<MethodResults.StarkDepositResult>;
+  ): Promise<PopulatedTransaction>;
   depositCancel(
     contractAddress: string,
     starkPublicKey: string,
     token: starkwareCrypto.Token,
     vaultId: string
-  ): Promise<MethodResults.StarkDepositCancelResult>;
+  ): Promise<PopulatedTransaction>;
   depositReclaim(
     contractAddress: string,
     starkPublicKey: string,
     token: starkwareCrypto.Token,
     vaultId: string
-  ): Promise<MethodResults.StarkDepositReclaimResult>;
+  ): Promise<PopulatedTransaction>;
   transfer(
     from: starkwareCrypto.TransferParams,
     to: starkwareCrypto.TransferParams,
@@ -98,56 +85,51 @@ interface StarkwareController {
     quantizedAmount: string,
     nonce: string,
     expirationTimestamp: string
-  ): Promise<MethodResults.StarkTransferResult>;
+  ): Promise<string>;
   createOrder(
     starkPublicKey: string,
     sell: starkwareCrypto.OrderParams,
     buy: starkwareCrypto.OrderParams,
     nonce: string,
     expirationTimestamp: string
-  ): Promise<MethodResults.StarkCreateOrderResult>;
+  ): Promise<string>;
   withdrawal(
     contractAddress: string,
     starkPublicKey: string,
     token: starkwareCrypto.Token
-  ): Promise<MethodResults.StarkWithdrawalResult>;
+  ): Promise<PopulatedTransaction>;
   fullWithdrawal(
     contractAddress: string,
     starkPublicKey: string,
     vaultId: string
-  ): Promise<MethodResults.StarkFullWithdrawalResult>;
+  ): Promise<PopulatedTransaction>;
   freeze(
     contractAddress: string,
     starkPublicKey: string,
     vaultId: string
-  ): Promise<MethodResults.StarkFreezeResult>;
+  ): Promise<PopulatedTransaction>;
   verifyEscape(
     contractAddress: string,
     starkPublicKey: string,
     proof: string[]
-  ): Promise<MethodResults.StarkVerifyEscapeResult>;
+  ): Promise<PopulatedTransaction>;
   escape(
     contractAddress: string,
     starkPublicKey: string,
     vaultId: string,
     token: starkwareCrypto.Token,
     quantizedAmount: string
-  ): Promise<MethodResults.StarkEscapeResult>;
-  resolve(payload: any);
+  ): Promise<PopulatedTransaction>;
 }
 
-namespace MethodResults {
-  export type StarkAccountResult = { starkPublicKey: string };
-  export type StarkRegisterResult = { txhash: string };
-  export type StarkDepositResult = { txhash: string };
-  export type StarkDepositCancelResult = { txhash: string };
-  export type StarkDepositReclaimResult = { txhash: string };
-  export type StarkTransferResult = { starkSignature: string };
-  export type StarkCreateOrderResult = { starkSignature: string };
-  export type StarkWithdrawalResult = { txhash: string };
-  export type StarkFullWithdrawalResult = { txhash: string };
-  export type StarkFreezeResult = { txhash: string };
-  export type StarkVerifyEscapeResult = { txhash: string };
-  export type StarkEscapeResult = { txhash: string };
+interface PopulatedTransaction {
+  to?: string;
+  from?: string;
+  nonce?: number;
+  gasLimit?: BigNumber;
+  gasPrice?: BigNumber;
+  data?: string;
+  value?: BigNumber;
+  chainId?: number;
 }
 ```

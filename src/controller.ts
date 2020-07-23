@@ -1,11 +1,24 @@
-import { Wallet, Contract, providers } from 'ethers';
+import { Wallet, Contract, providers, PopulatedTransaction } from 'ethers';
 
 import abi from './abi';
 import * as starkwareCrypto from './crypto';
-import { Store, StarkwareAccountMapping, MethodResults } from './types';
-import { MethodParams } from 'starkware-types';
+import { Store, StarkwareAccountMapping } from './types';
 
 const DEFAULT_ACCOUNT_MAPPING_KEY = 'STARKWARE_ACCOUNT_MAPPING';
+
+function getJsonRpcProvider(
+  provider: string | providers.Provider
+): providers.Provider {
+  return typeof provider === 'string'
+    ? new providers.JsonRpcProvider(provider)
+    : provider;
+}
+
+const ETH_STANDARD_PATH = "m/44'/60'/0'/0";
+
+function getPath(index = 0) {
+  return `${ETH_STANDARD_PATH}/${index}`;
+}
 
 // -- StarkwareController --------------------------------------------- //
 
@@ -13,20 +26,26 @@ export class StarkwareController {
   private accountMapping: StarkwareAccountMapping | undefined;
   private activeKeyPair: starkwareCrypto.KeyPair | undefined;
 
+  public provider: providers.Provider;
+  public walletIndex: number = 0;
+
   constructor(
-    private wallet: Wallet,
+    private mnemonic: string,
+    provider: string | providers.Provider,
     private store: Store,
-    public accountMappingKey: string = DEFAULT_ACCOUNT_MAPPING_KEY
-  ) {}
+    private accountMappingKey: string = DEFAULT_ACCOUNT_MAPPING_KEY
+  ) {
+    this.provider = getJsonRpcProvider(provider);
+  }
 
   // -- Get / Set ----------------------------------------------------- //
 
-  public setProvider(provider: string | providers.JsonRpcProvider): void {
-    this.wallet = this.wallet.connect(
-      typeof provider === 'string'
-        ? new providers.JsonRpcProvider(provider)
-        : provider
-    );
+  public setProvider(provider: string | providers.Provider): void {
+    this.provider = getJsonRpcProvider(provider);
+  }
+
+  public setWalletIndex(walletIndex: number): void {
+    this.walletIndex = walletIndex;
   }
 
   public async getStarkPublicKey(path?: string): Promise<string> {
@@ -36,7 +55,7 @@ export class StarkwareController {
     return starkPublicKey;
   }
 
-  public async getActiveKeyPair() {
+  public async getActiveKeyPair(): Promise<starkwareCrypto.KeyPair> {
     await this.getAccountMapping();
     if (this.activeKeyPair) {
       return this.activeKeyPair;
@@ -45,34 +64,39 @@ export class StarkwareController {
     }
   }
 
+  public getEthereumAddress(): string {
+    return Wallet.fromMnemonic(this.mnemonic, getPath(this.walletIndex))
+      .address;
+  }
+
   // -- JSON-RPC ----------------------------------------------------- //
 
   public async account(
     layer: string,
     application: string,
     index: string
-  ): Promise<MethodResults.StarkAccountResult> {
+  ): Promise<string> {
     const path = starkwareCrypto.getAccountPath(
       layer,
       application,
-      this.wallet.address,
+      this.getEthereumAddress(),
       index
     );
     const starkPublicKey = await this.getStarkPublicKey(path);
-    return { starkPublicKey };
+    return starkPublicKey;
   }
 
   public async register(
     contractAddress: string,
     starkPublicKey: string,
     operatorSignature: string
-  ): Promise<MethodResults.StarkRegisterResult> {
+  ): Promise<PopulatedTransaction> {
     const exchangeContract = this.getExchangeContract(contractAddress);
-    const { hash: txhash } = await exchangeContract.register(
+    const unsignedTx = await exchangeContract.populateTransaction.register(
       starkPublicKey,
       operatorSignature
     );
-    return { txhash };
+    return unsignedTx;
   }
 
   public async deposit(
@@ -81,16 +105,16 @@ export class StarkwareController {
     quantizedAmount: string,
     token: starkwareCrypto.Token,
     vaultId: string
-  ): Promise<MethodResults.StarkDepositResult> {
+  ): Promise<PopulatedTransaction> {
     await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const tokenId = starkwareCrypto.hashTokenId(token);
-    const { hash: txhash } = await exchangeContract.deposit(
+    const unsignedTx = await exchangeContract.populateTransaction.deposit(
       tokenId,
       vaultId,
       quantizedAmount
     );
-    return { txhash };
+    return unsignedTx;
   }
 
   public async depositCancel(
@@ -98,15 +122,15 @@ export class StarkwareController {
     starkPublicKey: string,
     token: starkwareCrypto.Token,
     vaultId: string
-  ): Promise<MethodResults.StarkDepositCancelResult> {
+  ): Promise<PopulatedTransaction> {
     await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const tokenId = starkwareCrypto.hashTokenId(token);
-    const { hash: txhash } = await exchangeContract.depositCancel(
+    const unsignedTx = await exchangeContract.populateTransaction.depositCancel(
       tokenId,
       vaultId
     );
-    return { txhash };
+    return unsignedTx;
   }
 
   public async depositReclaim(
@@ -114,15 +138,15 @@ export class StarkwareController {
     starkPublicKey: string,
     token: starkwareCrypto.Token,
     vaultId: string
-  ): Promise<MethodResults.StarkDepositReclaimResult> {
+  ): Promise<PopulatedTransaction> {
     await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const tokenId = starkwareCrypto.hashTokenId(token);
-    const { hash: txhash } = await exchangeContract.depositReclaim(
+    const unsignedTx = await exchangeContract.populateTransaction.depositReclaim(
       tokenId,
       vaultId
     );
-    return { txhash };
+    return unsignedTx;
   }
 
   public async transfer(
@@ -132,7 +156,7 @@ export class StarkwareController {
     quantizedAmount: string,
     nonce: string,
     expirationTimestamp: string
-  ): Promise<MethodResults.StarkTransferResult> {
+  ): Promise<string> {
     await this.assertStarkPublicKey(from.starkPublicKey);
     const senderVaultId = from.vaultId;
     const receiverVaultId = to.vaultId;
@@ -149,7 +173,7 @@ export class StarkwareController {
     const keyPair = await this.getActiveKeyPair();
     const signature = starkwareCrypto.sign(keyPair, msg);
     const starkSignature = starkwareCrypto.serializeSignature(signature);
-    return { starkSignature };
+    return starkSignature;
   }
 
   public async createOrder(
@@ -158,7 +182,7 @@ export class StarkwareController {
     buy: starkwareCrypto.OrderParams,
     nonce: string,
     expirationTimestamp: string
-  ): Promise<MethodResults.StarkCreateOrderResult> {
+  ): Promise<string> {
     await this.assertStarkPublicKey(starkPublicKey);
     const vaultSell = sell.vaultId;
     const vaultBuy = buy.vaultId;
@@ -179,54 +203,60 @@ export class StarkwareController {
     const keyPair = await this.getActiveKeyPair();
     const signature = starkwareCrypto.sign(keyPair, msg);
     const starkSignature = starkwareCrypto.serializeSignature(signature);
-    return { starkSignature };
+    return starkSignature;
   }
 
   public async withdrawal(
     contractAddress: string,
     starkPublicKey: string,
     token: starkwareCrypto.Token
-  ): Promise<MethodResults.StarkWithdrawalResult> {
+  ): Promise<PopulatedTransaction> {
     await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const tokenId = starkwareCrypto.hashTokenId(token);
-    const { hash: txhash } = await exchangeContract.withdraw(tokenId);
-    return { txhash };
+    const unsignedTx = await exchangeContract.populateTransaction.withdraw(
+      tokenId
+    );
+    return unsignedTx;
   }
 
   public async fullWithdrawal(
     contractAddress: string,
     starkPublicKey: string,
     vaultId: string
-  ): Promise<MethodResults.StarkFullWithdrawalResult> {
+  ): Promise<PopulatedTransaction> {
     await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
-    const { hash: txhash } = await exchangeContract.fullWithdrawalRequest(
+    const unsignedTx = await exchangeContract.populateTransaction.fullWithdrawalRequest(
       vaultId
     );
-    return { txhash };
+    return unsignedTx;
   }
 
   public async freeze(
     contractAddress: string,
     starkPublicKey: string,
     vaultId: string
-  ): Promise<MethodResults.StarkFreezeResult> {
+  ): Promise<PopulatedTransaction> {
     await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
-    const { hash: txhash } = await exchangeContract.freezeRequest(vaultId);
-    return { txhash };
+    const unsignedTx = await exchangeContract.populateTransaction.freezeRequest(
+      vaultId
+    );
+    return unsignedTx;
   }
 
   public async verifyEscape(
     contractAddress: string,
     starkPublicKey: string,
     proof: string[]
-  ): Promise<MethodResults.StarkVerifyEscapeResult> {
+  ): Promise<PopulatedTransaction> {
     await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
-    const { hash: txhash } = await exchangeContract.verifyEscape(proof);
-    return { txhash };
+    const unsignedTx = await exchangeContract.populateTransaction.verifyEscape(
+      proof
+    );
+    return unsignedTx;
   }
 
   public async escape(
@@ -235,179 +265,17 @@ export class StarkwareController {
     vaultId: string,
     token: starkwareCrypto.Token,
     quantizedAmount: string
-  ): Promise<MethodResults.StarkEscapeResult> {
+  ): Promise<PopulatedTransaction> {
     await this.assertStarkPublicKey(starkPublicKey);
     const exchangeContract = this.getExchangeContract(contractAddress);
     const tokenId = starkwareCrypto.hashTokenId(token);
-    const { hash: txhash } = await exchangeContract.escape(
+    const unsignedTx = await exchangeContract.populateTransaction.escape(
       starkPublicKey,
       vaultId,
       tokenId,
       quantizedAmount
     );
-    return { txhash };
-  }
-
-  public async resolve(payload: any) {
-    let response: { id: number; result: any };
-    const { id, method } = payload;
-    try {
-      switch (method) {
-        case 'stark_account':
-          const accountParams = payload.params as MethodParams.StarkAccountParams;
-          response = {
-            id,
-            result: await this.account(
-              accountParams.layer,
-              accountParams.application,
-              accountParams.index
-            ),
-          };
-          break;
-        case 'stark_register':
-          const registerParams = payload.params as MethodParams.StarkRegisterParams;
-          response = {
-            id,
-            result: await this.register(
-              registerParams.contractAddress,
-              registerParams.starkPublicKey,
-              registerParams.operatorSignature
-            ),
-          };
-          break;
-        case 'stark_deposit':
-          const depositParams = payload.params as MethodParams.StarkDepositParams;
-          response = {
-            id,
-            result: await this.deposit(
-              depositParams.contractAddress,
-              depositParams.starkPublicKey,
-              depositParams.quantizedAmount,
-              depositParams.token,
-              depositParams.vaultId
-            ),
-          };
-          break;
-        case 'stark_depositCancel':
-          const depositCancelParams = payload.params as MethodParams.StarkDepositCancelParams;
-          response = {
-            id,
-            result: await this.depositCancel(
-              depositCancelParams.contractAddress,
-              depositCancelParams.starkPublicKey,
-              depositCancelParams.token,
-              depositCancelParams.vaultId
-            ),
-          };
-          break;
-        case 'stark_depositReclaim':
-          const depositReclaimParams = payload.params as MethodParams.StarkDepositReclaimParams;
-          response = {
-            id,
-            result: await this.depositReclaim(
-              depositReclaimParams.contractAddress,
-              depositReclaimParams.starkPublicKey,
-              depositReclaimParams.token,
-              depositReclaimParams.vaultId
-            ),
-          };
-          break;
-        case 'stark_transfer':
-          const transferParams = payload.params as MethodParams.StarkTransferParams;
-          response = {
-            id,
-            result: await this.transfer(
-              transferParams.from,
-              transferParams.to,
-              transferParams.token,
-              transferParams.quantizedAmount,
-              transferParams.nonce,
-              transferParams.expirationTimestamp
-            ),
-          };
-          break;
-        case 'stark_createOrder':
-          const createOrderParams = payload.params as MethodParams.StarkCreateOrderParams;
-          response = {
-            id,
-            result: await this.createOrder(
-              createOrderParams.starkPublicKey,
-              createOrderParams.sell,
-              createOrderParams.buy,
-              createOrderParams.nonce,
-              createOrderParams.expirationTimestamp
-            ),
-          };
-          break;
-        case 'stark_withdrawal':
-          const withdrawalParams = payload.params as MethodParams.StarkWithdrawalParams;
-          response = {
-            id,
-            result: await this.withdrawal(
-              withdrawalParams.contractAddress,
-              withdrawalParams.starkPublicKey,
-              withdrawalParams.token
-            ),
-          };
-          break;
-        case 'stark_fullWithdrawal':
-          const fullWithdrawalParams = payload.params as MethodParams.StarkFullWithdrawalParams;
-          response = {
-            id,
-            result: await this.fullWithdrawal(
-              fullWithdrawalParams.contractAddress,
-              fullWithdrawalParams.starkPublicKey,
-              fullWithdrawalParams.vaultId
-            ),
-          };
-          break;
-        case 'stark_freeze':
-          const freeezeParams = payload.params as MethodParams.StarkFreezeParams;
-          response = {
-            id,
-            result: await this.freeze(
-              freeezeParams.contractAddress,
-              freeezeParams.starkPublicKey,
-              freeezeParams.vaultId
-            ),
-          };
-          break;
-        case 'stark_verifyEscape':
-          const verifyEscapeParams = payload.params as MethodParams.StarkVerifyEscapeParams;
-          response = {
-            id,
-            result: await this.verifyEscape(
-              verifyEscapeParams.contractAddress,
-              verifyEscapeParams.starkPublicKey,
-              verifyEscapeParams.proof
-            ),
-          };
-          break;
-        case 'stark_escape':
-          const escapeParams = payload.params as MethodParams.StarkEscapeParams;
-          response = {
-            id,
-            result: await this.escape(
-              escapeParams.contractAddress,
-              escapeParams.starkPublicKey,
-              escapeParams.vaultId,
-              escapeParams.token,
-              escapeParams.quantizedAmount
-            ),
-          };
-          break;
-        default:
-          throw new Error(`Unknown Starkware RPC Method: ${method}`);
-      }
-      return response;
-    } catch (error) {
-      return {
-        id: payload.id,
-        error: {
-          message: error.message,
-        },
-      };
-    }
+    return unsignedTx;
   }
 
   // -- Private ------------------------------------------------------- //
@@ -430,7 +298,7 @@ export class StarkwareController {
       return starkwareCrypto.ec.keyFromPrivate(match);
     }
     const activeKeyPair = starkwareCrypto.getKeyPairFromPath(
-      this.wallet.mnemonic.phrase,
+      this.mnemonic,
       path
     );
     await this.setActiveKeyPair(path, activeKeyPair);
@@ -449,7 +317,7 @@ export class StarkwareController {
   }
 
   private getExchangeContract(contractAddress: string) {
-    return new Contract(contractAddress, abi, this.wallet);
+    return new Contract(contractAddress, abi, this.provider);
   }
 
   private async getAccountMapping(): Promise<StarkwareAccountMapping> {
