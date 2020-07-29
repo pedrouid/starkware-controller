@@ -40,6 +40,12 @@ export class StarkwareController {
 
   // -- Get / Set ----------------------------------------------------- //
 
+  get starkPublicKey(): string | undefined {
+    if (!this.activeKeyPair) return undefined;
+    const publicKey = starkwareCrypto.getPublic(this.activeKeyPair);
+    return starkwareCrypto.getStarkPublicKey(publicKey);
+  }
+
   public setProvider(provider: string | providers.Provider): void {
     this.provider = getJsonRpcProvider(provider);
   }
