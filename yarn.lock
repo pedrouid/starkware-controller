@@ -3091,10 +3091,10 @@ emojis-list@^3.0.0:
   resolved "https://registry.yarnpkg.com/emojis-list/-/emojis-list-3.0.0.tgz#5570662046ad29e2e916e71aae260abdff4f6a78"
   integrity sha512-/kyM18EfinwXZbno9FyUGeFh87KC8HRQBQGildHZbEuRyWFOmv1U10o9BBp8XVZDVNNuQKyIGIu5ZYAAXJ0V2Q==
 
-enc-utils@2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/enc-utils/-/enc-utils-2.2.1.tgz#4e3530fde49afc06b5aa71522b9846cbf88ffdd4"
-  integrity sha512-BU+BGgm7xt8jSgpIgiKnxnYT4gNY52hD2QBmSFbOy7xw7PYp1UmnhsSeWFe/OVdm7qL+hJI1QvpOWAV3JqshbQ==
+enc-utils@2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/enc-utils/-/enc-utils-2.2.2.tgz#d191619b077d1314ef319a9962640a0fcf9eb13b"
+  integrity sha512-gdWLQsnxYYhFRPrSCPrxsqX/4xXxAcb+63u65pdBBmCA/GKhGfZjXKKWse6UfMXc8Nlvz6jKPtRoCDhYo8Kiaw==
   dependencies:
     bn.js "4.11.8"
     is-typedarray "1.0.0"
@@ -3467,16 +3467,17 @@ ethereumjs-wallet@1.0.0:
     utf8 "^3.0.0"
     uuid "^3.3.2"
 
-ethers@^5.0.5:
-  version "5.0.5"
-  resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.0.5.tgz#09b37c27d3b7d93c084af7ec4cad72ca8cfa5b7a"
-  integrity sha512-hkVI7fi16ADWTctYMEfamU39hoR+JpkdEI7LH8PC7Bhl0Dp8y8dqFJ948pSEuuPJI5NR/L4+V6y2Alvyu+zROw==
+ethers@^5.0.8:
+  version "5.0.8"
+  resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.0.8.tgz#c13d0fdf5e66db8085e2036d3309ed2f8a17ed89"
+  integrity sha512-of/rPgJ7E3yyBADUv5A7Gtkd7EB8ta/T9NS5CCG9tj9cifnXcI3KIdYQ7d8AS+9vm38pR1g6S5I+Q/mRnlQZlg==
   dependencies:
     "@ethersproject/abi" "^5.0.0"
     "@ethersproject/abstract-provider" "^5.0.0"
     "@ethersproject/abstract-signer" "^5.0.0"
     "@ethersproject/address" "^5.0.0"
     "@ethersproject/base64" "^5.0.0"
+    "@ethersproject/basex" "^5.0.0"
     "@ethersproject/bignumber" "^5.0.0"
     "@ethersproject/bytes" "^5.0.0"
     "@ethersproject/constants" "^5.0.0"
@@ -7123,15 +7124,15 @@ stack-utils@^1.0.1:
   resolved "https://registry.yarnpkg.com/stack-utils/-/stack-utils-1.0.2.tgz#33eba3897788558bebfc2db059dc158ec36cebb8"
   integrity sha512-MTX+MeG5U994cazkjd/9KNAapsHnibjMLnfXodlkXw76JEea0UiNzrqidzo1emMwk7w5Qhc9jd4Bn9TBb1MFwA==
 
-starkware-crypto@^1.9.1:
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/starkware-crypto/-/starkware-crypto-1.9.1.tgz#54272a31221cf0d4581d6627b24458237aab4201"
-  integrity sha512-TC8uWMPYLSbHSq+sb149sN2kUzj4T1N/w4HBjc50476K2Vb988soewM0NGOlt4EyflS158uHpCOgRG4OSEmoWw==
+starkware-crypto@^1.9.2:
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/starkware-crypto/-/starkware-crypto-1.9.2.tgz#aef514927cbcfe101fc06ccd21dfe1e55a42282a"
+  integrity sha512-b/hnaqxN73LxH+jgMY9+WBPjc8u80BUHmQl2h7YxUyvadS2VLzhN1MFDvgEGctKUdgZmhfIdChcm442d0KORlA==
   dependencies:
     bip39 "3.0.2"
     bn.js "5.1.2"
     elliptic "6.5.3"
-    enc-utils "2.2.1"
+    enc-utils "2.2.2"
     ethereumjs-wallet "1.0.0"
     hash.js "1.1.7"
     js-sha3 "0.8.0"

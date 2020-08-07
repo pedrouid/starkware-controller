@@ -37,8 +37,8 @@
     "prepare": "yarn lint && yarn build && yarn test"
   },
   "dependencies": {
-    "ethers": "^5.0.5",
-    "starkware-crypto": "^1.9.1",
+    "ethers": "^5.0.8",
+    "starkware-crypto": "^1.9.2",
     "starkware-types": "1.2.0"
   },
   "devDependencies": {
