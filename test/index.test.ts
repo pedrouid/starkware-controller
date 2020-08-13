@@ -1,3 +1,5 @@
+import * as starkwareCrypto from 'starkware-crypto';
+
 import StarkwareController from '../src';
 
 const storage = {};
@@ -26,7 +28,7 @@ const starkPublicKey =
   '0x03a535c13f12c6a2c7e7c0dade3a68225988698687e396a321c12f5d393bea4a';
 
 const starkSignature =
-  '0x3e243c5b004c89cd9c66fd1c8361c2d42226816214ac113f441027f165c6a78c7724575abe95602caac714cbc1e650ca3f2355e76dbb5ffb6065c194a38471b';
+  '0x03e243c5b004c89cd9c66fd1c8361c2d42226816214ac113f441027f165c6a7800c7724575abe95602caac714cbc1e650ca3f2355e76dbb5ffb6065c194a38471b';
 
 describe('starkware-controller', () => {
   let controller: StarkwareController;
@@ -66,5 +68,21 @@ describe('starkware-controller', () => {
     );
     expect(result).toBeTruthy();
     expect(result).toEqual(starkSignature);
+
+    const senderVaultId = from.vaultId;
+    const receiverVaultId = to.vaultId;
+    const receiverPublicKey = to.starkPublicKey;
+    const msg = starkwareCrypto.getTransferMsg(
+      quantizedAmount,
+      nonce,
+      senderVaultId,
+      token,
+      receiverVaultId,
+      receiverPublicKey,
+      expirationTimestamp
+    );
+    const keyPair = await controller.getActiveKeyPair();
+    const sig = starkwareCrypto.deserializeSignature(result);
+    expect(starkwareCrypto.verify(keyPair, msg, sig)).toBeTruthy();
   });
 });

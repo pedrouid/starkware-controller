@@ -38,8 +38,8 @@
   },
   "dependencies": {
     "ethers": "^5.0.8",
-    "starkware-crypto": "^1.9.2",
-    "starkware-types": "1.2.0"
+    "starkware-crypto": "^1.9.4",
+    "starkware-types": "^1.2.0"
   },
   "devDependencies": {
     "@types/jest": "25.1.1",
