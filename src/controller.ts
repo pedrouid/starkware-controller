@@ -97,7 +97,7 @@ export class StarkwareController {
   ): Promise<PopulatedTransaction> {
     const exchangeContract = this.getExchangeContract(contractAddress);
     const unsignedTx = await exchangeContract.populateTransaction.register(
-      starkPublicKey,
+      starkwareCrypto.getXCoordinate(starkPublicKey),
       operatorSignature
     );
     return unsignedTx;
@@ -274,7 +274,7 @@ export class StarkwareController {
     const exchangeContract = this.getExchangeContract(contractAddress);
     const tokenId = starkwareCrypto.hashTokenId(token);
     const unsignedTx = await exchangeContract.populateTransaction.escape(
-      starkPublicKey,
+      starkwareCrypto.getXCoordinate(starkPublicKey),
       vaultId,
       tokenId,
       quantizedAmount

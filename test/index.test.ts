@@ -44,16 +44,8 @@ describe('starkware-controller', () => {
     expect(result).toEqual(starkPublicKey);
   });
   it('should resolve stark_transfer', async () => {
-    const from = {
-      starkPublicKey:
-        '0303a535c13f12c6a2c7e7c0dade3a68225988698687e396a321c12f5d393bea4a',
-      vaultId: '1',
-    };
-    const to = {
-      starkPublicKey:
-        '0303a535c13f12c6a2c7e7c0dade3a68225988698687e396a321c12f5d393bea4a',
-      vaultId: '606138218',
-    };
+    const from = { starkPublicKey, vaultId: '1' };
+    const to = { starkPublicKey, vaultId: '606138218' };
     const token = { type: 'ETH' as 'ETH', data: { quantum: '10000000000' } };
     const quantizedAmount = '100000000';
     const nonce = '1597237097';
