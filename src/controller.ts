@@ -1,4 +1,5 @@
 import { Wallet, Contract, providers, PopulatedTransaction } from 'ethers';
+import * as encUtils from 'enc-utils';
 
 import abi from './abi';
 import * as starkwareCrypto from './crypto';
@@ -97,7 +98,7 @@ export class StarkwareController {
   ): Promise<PopulatedTransaction> {
     const exchangeContract = this.getExchangeContract(contractAddress);
     const unsignedTx = await exchangeContract.populateTransaction.register(
-      starkwareCrypto.getXCoordinate(starkPublicKey),
+      encUtils.sanitizeHex(starkwareCrypto.getXCoordinate(starkPublicKey)),
       operatorSignature
     );
     return unsignedTx;
@@ -274,7 +275,7 @@ export class StarkwareController {
     const exchangeContract = this.getExchangeContract(contractAddress);
     const tokenId = starkwareCrypto.hashTokenId(token);
     const unsignedTx = await exchangeContract.populateTransaction.escape(
-      starkwareCrypto.getXCoordinate(starkPublicKey),
+      encUtils.sanitizeHex(starkwareCrypto.getXCoordinate(starkPublicKey)),
       vaultId,
       tokenId,
       quantizedAmount
