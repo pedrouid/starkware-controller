@@ -42,8 +42,7 @@ export class StarkwareController {
 
   get starkPublicKey(): string | undefined {
     if (!this.activeKeyPair) return undefined;
-    const publicKey = starkwareCrypto.getPublic(this.activeKeyPair);
-    return starkwareCrypto.getStarkPublicKey(publicKey);
+    return starkwareCrypto.getStarkPublicKey(this.activeKeyPair);
   }
 
   public setProvider(provider: string | providers.Provider): void {
@@ -56,8 +55,7 @@ export class StarkwareController {
 
   public async getStarkPublicKey(path?: string): Promise<string> {
     const keyPair = await this.getKeyPairFromPath(path);
-    const publicKey = starkwareCrypto.getPublic(keyPair);
-    const starkPublicKey = starkwareCrypto.getStarkPublicKey(publicKey);
+    const starkPublicKey = starkwareCrypto.getStarkPublicKey(keyPair);
     return starkPublicKey;
   }
 

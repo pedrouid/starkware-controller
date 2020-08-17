@@ -25,7 +25,7 @@ const index = '0';
 const provider = 'https://ropsten-rpc.linkpool.io/';
 
 const starkPublicKey =
-  '0x03a535c13f12c6a2c7e7c0dade3a68225988698687e396a321c12f5d393bea4a';
+  '0303a535c13f12c6a2c7e7c0dade3a68225988698687e396a321c12f5d393bea4a';
 
 const starkSignature =
   '0x03e243c5b004c89cd9c66fd1c8361c2d42226816214ac113f441027f165c6a7800c7724575abe95602caac714cbc1e650ca3f2355e76dbb5ffb6065c194a38471b';
@@ -46,12 +46,12 @@ describe('starkware-controller', () => {
   it('should resolve stark_transfer', async () => {
     const from = {
       starkPublicKey:
-        '0x03a535c13f12c6a2c7e7c0dade3a68225988698687e396a321c12f5d393bea4a',
+        '0303a535c13f12c6a2c7e7c0dade3a68225988698687e396a321c12f5d393bea4a',
       vaultId: '1',
     };
     const to = {
       starkPublicKey:
-        '0x03a535c13f12c6a2c7e7c0dade3a68225988698687e396a321c12f5d393bea4a',
+        '0303a535c13f12c6a2c7e7c0dade3a68225988698687e396a321c12f5d393bea4a',
       vaultId: '606138218',
     };
     const token = { type: 'ETH' as 'ETH', data: { quantum: '10000000000' } };

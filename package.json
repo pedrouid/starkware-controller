@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "ethers": "^5.0.8",
-    "starkware-crypto": "^1.9.4",
+    "starkware-crypto": "^1.9.6",
     "starkware-types": "^1.2.0"
   },
   "devDependencies": {
