@@ -1,7 +1,7 @@
 {
   "name": "starkware-controller",
   "description": "Starkware JSON-RPC Controller Library",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "author": "Pedro Gomes <github.com/pedrouid>",
   "license": "Apache-2.0",
   "keywords": [
@@ -34,7 +34,7 @@
     "build": "yarn clean && yarn build:cjs && yarn build:umd",
     "test": "tsdx test ./test",
     "lint": "tsdx lint src test",
-    "prepare": "yarn lint && yarn build && yarn test"
+    "prepare": "yarn lint && yarn build"
   },
   "dependencies": {
     "ethers": "^5.0.8",
